@@ -6,6 +6,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from localization_zh_cn import localize_piko_settings
+
 PIKO_REPO = "crimera/piko"
 PIKO_REPOSITORY = f"https://github.com/{PIKO_REPO}.git"
 PIKO_BRANCH = "x-lite"
@@ -113,7 +115,14 @@ def build_piko_patches(
             (piko_directory / XLITE_CONSTANTS).read_text()
         )
 
+        # Cache English source strings before cleanup removes values/twitter/
+        addresources = piko_directory / "patches" / "src" / "main" / "resources" / "addresources"
+        cached_en_twitter = (addresources / "values" / "twitter" / "strings.xml").read_text(encoding="utf-8")
+        cached_en_newx = (addresources / "values" / "newx" / "strings.xml").read_text(encoding="utf-8")
+
         pre_build_cleanup(piko_directory)
+
+        localize_piko_settings(piko_directory, cached_en_twitter, cached_en_newx)
 
         if patch_version is not None:
             set_project_version(piko_directory, patch_version)
